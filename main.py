@@ -167,8 +167,8 @@ def kostil():
     widget_list = root.winfo_children()
     # ATTENTION!! DO NOT TRY THIS AT HOME!! КОСТЫЛЬ!!!
     # Нужен для того, чтобы заменять прошлый результат поиска банка(виджет Label) новым
-    if len(widget_list) > 7:
-        for w in widget_list[7:]:
+    if len(widget_list) > 8:
+        for w in widget_list[8:]:
             w.destroy()
 
 
@@ -323,6 +323,12 @@ clients = {('Физическое лицо', 'Удобство'):
            ('Корпорация', 'Безопасность'):
                ('Лист6', 'pointSec', 'Списки/Оценка преимуществ и недостатков услуг(корпорации)', 9)}
 
+
+def clear():
+    kostil()
+    detailed_pressed = False
+
+
 root = tk.Tk()
 root.title("DBO")
 root.geometry("550x1050")
@@ -348,6 +354,9 @@ detailed_but.pack()
 
 result_but = tk.Button(text="Подобрать банк", command=show)
 result_but.pack()
+
+clear_but = tk.Button(text="Очистить", command=clear)
+clear_but.pack()
 
 exit_but = tk.Button(text='Выход', command=root.destroy)
 exit_but.pack()
