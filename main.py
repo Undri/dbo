@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import tkinter as tk
+from tkinter import ttk
 
 
 def sheet_price_rating(weight, sheet):
@@ -31,7 +33,8 @@ def fiz_sec_rating(weight):
             sheet5.loc[bank, 'pointSec'] += sheet5.loc[bank, sheet5.columns[i]] * weight[i - 3] / 0.7
     for bank in sheet5.index:
         j = 0
-        while sheet5.loc[bank, 'Народный рейтинг'] > sheet5['Народный рейтинг'].mean() + j * sheet5['Народный рейтинг'].std():
+        while sheet5.loc[bank, 'Народный рейтинг'] > sheet5['Народный рейтинг'].mean() + j * sheet5['Народный рейтинг']\
+                .std():
             j += 1
         sheet5.loc[bank, 'pointSec'] += j
 
@@ -57,6 +60,7 @@ def ur_inter_rating(weight):
             sheet6.loc[bank, 'pointInter'] += sheet6.loc[bank, sheet6.columns[len(sheet6.columns) - 3 - i]] * weight[i]
 
 
+# Удобство физ лица - первые 3 столбца
 def fiz_func_rating(weight):
     sheet7.loc[:, 'pointFiz'] = 0
     for i in range(len(sheet7.columns[:3])):
@@ -66,7 +70,7 @@ def fiz_func_rating(weight):
 
 def ur_func_rating(weight):
     sheet7.loc[:, 'pointUr'] = 0
-    for i in range(len(sheet7.columns)):
+    for i in range(len(sheet7.columns)-2):
         for bank in sheet7.index:
             sheet7.loc[bank, 'pointUr'] += sheet7.loc[bank, sheet7.columns[i]] * weight[i] * 0.09
 
@@ -150,4 +154,203 @@ with pd.ExcelWriter('output.xlsx') as writer:
     sheet5.to_excel(writer, sheet_name='Лист5')
     sheet6.to_excel(writer, sheet_name='Лист6')
     sheet7.to_excel(writer, sheet_name='Лист7')
+
+
+def make_result_label(sheet, point, name):
+    ans = sheet.sort_values(by=point, ascending=False)[name].tolist()
+    text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+    out = tk.Label(text=text)
+    out.pack()
+
+
+def kostil():
+    widget_list = root.winfo_children()
+    # ATTENTION!! DO NOT TRY THIS AT HOME!! КОСТЫЛЬ!!!
+    # Нужен для того, чтобы заменять прошлый результат поиска банка(виджет Label) новым
+    if len(widget_list) > 7:
+        for w in widget_list[7:]:
+            w.destroy()
+
+
+def show():
+    global clients
+    global detailed_pressed
+    global checks
+    global sheet1, sheet2, sheet3
+    current_client = (choose_type.get(), choose_category.get())
+    if not detailed_pressed:
+        kostil()
+        sheet = pd.read_excel('output.xlsx', clients[current_client][0])
+        make_result_label(sheet, clients[current_client][1], clients[current_client][2])
+        return
+    else:
+        data = list()
+        for check in checks:
+            data.append(int(check.get()))
+        if clients[current_client][3] == 1:
+            fiz_func_rating(data)
+            ans = sheet7.sort_values(by="pointFiz", ascending=False)["pointFiz"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 2:
+            sheet1 = sheet1.drop(columns=["point1"])
+            sheet_price_rating(data, sheet1)
+            sheet1['point1'] = np.nan
+            ans = sheet1.sort_values(by="point", ascending=False)["point"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 3:
+            fiz_sec_rating(data)
+            ans = sheet5.sort_values(by="pointSec", ascending=False)["pointSec"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 4:
+            ur_func_rating(data)
+            ans = sheet7.sort_values(by="pointUr", ascending=False)["pointUr"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 5:
+            sheet2 = sheet2.drop(columns=["point1"])
+            sheet_price_rating(data, sheet2)
+            sheet2['point1'] = np.nan
+            ans = sheet2.sort_values(by="point", ascending=False)["point"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 6:
+            ur_sec_rating(data)
+            ans = sheet6.sort_values(by="pointSec", ascending=False)["pointSec"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 7:
+            ur_inter_rating(data)
+            ans = sheet6.sort_values(by="pointInter", ascending=False)["pointInter"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 8:
+            sheet3 = sheet3.drop(columns=["point1"])
+            sheet_price_rating(data, sheet3)
+            sheet3['point1'] = np.nan
+            ans = sheet1.sort_values(by="point", ascending=False)["point"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+        if clients[current_client][3] == 9:
+            ur_sec_rating(data)
+            ans = sheet6.sort_values(by="pointSec", ascending=False)["pointSec"].index.tolist()
+            text = '1)' + ' ' + ans[0] + '\n' + '2)' + ' ' + ans[1] + '\n' + '3)' + ' ' + ans[2]
+            out = tk.Label(text=text)
+            out.pack()
+            return
+
+
+def detailed():
+    kostil()
+    global detailed_pressed
+    global checks
+    checks = list()
+    detailed_pressed = True
+    if str(choose_category.get()) == '' and str(choose_type.get()) == '':
+        error_label = tk.Label(text='Недостаточно информации')
+        error_label.pack()
+    else:
+        current_client = (choose_type.get(), choose_category.get())
+        sheet = pd.read_excel('output.xlsx', clients[current_client][0])
+        limit_a = 0
+        limit_b = 0
+        if clients[current_client][3] == 1:
+            limit_a = 1
+            limit_b = 4
+        if clients[current_client][3] == 2:
+            limit_a = 1
+            limit_b = -2
+        if clients[current_client][3] == 3:
+            limit_a = 1
+            limit_b = 11
+        if clients[current_client][3] == 4:
+            limit_a = 1
+            limit_b = -2
+        if clients[current_client][3] == 5:
+            limit_a = 1
+            limit_b = -2
+        if clients[current_client][3] == 6:
+            limit_a = 1
+            limit_b = 8
+        if clients[current_client][3] == 7:
+            limit_a = 8
+            limit_b = 10
+        if clients[current_client][3] == 8:
+            limit_a = 1
+            limit_b = -2
+        if clients[current_client][3] == 9:
+            limit_a = 1
+            limit_b = 8
+        for col in sheet.columns[limit_a:limit_b]:
+            var = tk.BooleanVar()
+            check = tk.Checkbutton(text=col, variable=var)
+            check.pack()
+            checks.append(var)
+
+
+clients = {('Физическое лицо', 'Удобство'):
+               ('Лист7', 'pointFiz', 'Списки/Оценка преимуществ и недостатков услуг(общее)', 1),
+           ('Физическое лицо', 'Низкая стоимость услуг'): ('Лист1', 'point', 'Списки банков', 2),
+           ('Физическое лицо', 'Безопасность'):
+            ('Лист5', 'pointSec', 'Списки/Оценка преимуществ и недостатков различных услуг(физические лица):', 3),
+           ('Юридическое лицо', 'Удобство'):
+               ('Лист7', 'pointUr', 'Списки/Оценка преимуществ и недостатков услуг(общее)', 4),
+           ('Юридическое лицо', 'Низкая стоимость услуг'):
+               ('Лист2', 'point', 'Списки/Стоим.услуг для малого и среднего бизнеса', 5),
+           ('Юридическое лицо', 'Безопасность'):
+            ('Лист6', 'pointSec', 'Списки/Оценка преимуществ и недостатков услуг(корпорации)', 6),
+           ('Корпорация', 'Удобство'):
+               ('Лист6', 'pointInter', 'Списки/Оценка преимуществ и недостатков услуг(корпорации)', 7),
+           ('Корпорация', 'Низкая стоимость услуг'): ('Лист3', 'point', 'Списки/Стоим.услуг для корпораций:', 8),
+           ('Корпорация', 'Безопасность'):
+               ('Лист6', 'pointSec', 'Списки/Оценка преимуществ и недостатков услуг(корпорации)', 9)}
+
+root = tk.Tk()
+root.title("DBO")
+root.geometry("550x1050")
+root.resizable(False, False)
+
+detailed_pressed = False
+checks = list()
+
+choose_type_label = tk.Label(text='Тип субъекта')
+choose_type_label.pack()
+
+choose_type = ttk.Combobox(values=['Физическое лицо', 'Юридическое лицо', 'Корпорация'])
+choose_type.pack()
+
+choose_cat_label = tk.Label(text='Наиболее значимая характеристика')
+choose_cat_label.pack()
+
+choose_category = ttk.Combobox(values=['Удобство', 'Низкая стоимость услуг', 'Безопасность'])
+choose_category.pack()
+
+detailed_but = tk.Button(text="Подробнее..", command=detailed)
+detailed_but.pack()
+
+result_but = tk.Button(text="Подобрать банк", command=show)
+result_but.pack()
+
+exit_but = tk.Button(text='Выход', command=root.destroy)
+exit_but.pack()
+
+root.mainloop()
 
